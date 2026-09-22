@@ -75,8 +75,8 @@
                 <button onclick="exportarBackupJSON()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded font-medium transition flex items-center gap-1.5 border border-slate-700 shadow-xs" title="Baixar Backup de Segurança">
                     <i class="fa-solid fa-download text-slate-400"></i> Backup
                 </button>
-                <label class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded font-medium transition flex items-center gap-1.5 cursor-pointer border border-slate-700 shadow-xs" title="Restaurar Backup JSON">
-                    <i class="fa-solid fa-upload text-slate-400"></i> Restaurar
+                <label class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded font-medium transition flex items-center gap-1.5 cursor-pointer border border-slate-700 shadow-xs" title="Restaurar Backup JSON de outra máquina">
+                    <i class="fa-solid fa-upload text-slate-400"></i> Sincronizar / Restaurar
                     <input type="file" accept=".json" class="hidden" onchange="importarBackupJSON(event)">
                 </label>
             </div>
@@ -258,7 +258,7 @@
     </div>
 
     <footer class="bg-white border-t border-slate-200 text-center py-3 text-[11px] text-slate-500 mt-auto no-print">
-        <span>Sistema Corporativo de Gestão de Frotas &bull; Conformidade Regulatória &bull; Ambiente Seguro</span>
+        <span>Sistema Corporativo de Gestão de Frotas &bull; Conformidade Regulatória &bull; Sincronização Ativa</span>
     </footer>
 
     <script>
@@ -342,6 +342,16 @@
                 salvarLocalStorage();
             }
             renderizarTabelas();
+
+            // Sincroniza abas abertas no mesmo navegador automaticamente
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'tacografos_dados_frota_v2' && event.newValue) {
+                    try {
+                        registros = JSON.parse(event.newValue);
+                        renderizarTabelas();
+                    } catch (e) {}
+                }
+            });
         }
 
         function salvarLocalStorage() {
@@ -521,7 +531,7 @@
                 registros[parseInt(index)] = novoDado;
             }
 
-            salvarLocalStorage(); // Salva automaticamente as alterações
+            salvarLocalStorage();
             fecharModal();
             renderizarTabelas();
         }
@@ -529,7 +539,7 @@
         function excluirRegistro(index) {
             if (confirm("Deseja realmente excluir este veículo do sistema?")) {
                 registros.splice(index, 1);
-                salvarLocalStorage(); // Salva automaticamente a remoção
+                salvarLocalStorage();
                 renderizarTabelas();
             }
         }
@@ -573,7 +583,7 @@
                         registros = imported;
                         salvarLocalStorage();
                         renderizarTabelas();
-                        alert("Backup restaurado com sucesso!");
+                        alert("Dados sincronizados/restaurados com sucesso!");
                     } else {
                         alert("Arquivo de backup inválido.");
                     }
