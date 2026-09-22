@@ -45,7 +45,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col" onload="carregarDados()">
 
     <!-- Header Corporativo Institucional -->
     <header class="bg-slate-900 text-white shadow-md border-b border-slate-800 no-print">
@@ -146,10 +146,6 @@
                     <option value="vencimento">Ordenar por Vencimento</option>
                     <option value="placa">Ordenar por Placa (A-Z)</option>
                 </select>
-
-                <button onclick="gerarRelatorio()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs px-3.5 py-2 rounded font-medium transition flex items-center gap-2 shadow-xs border border-slate-700">
-                    <i class="fa-solid fa-file-lines text-slate-300"></i> Relatório
-                </button>
             </div>
         </div>
 
@@ -446,29 +442,34 @@
                     let textoDias = `${item.diasRestantes} dia(s)`;
                     
                     if (item.diasRestantes < 0) {
-                        corDias = "bg-rose-50 text-rose-800 border-rose-200 font-semibold";
-                        textoDias = `Vencido há ${Math.abs(item.diasRestantes)} dia(s)`;
-                    } else if (item.diasRestantes === 0) {
-                        corDias = "bg-rose-50 text-rose-800 border-rose-200 font-semibold";
-                        textoDias = "Vence hoje!";
+                        corDias = "bg-rose-50 text-rose-800 border-rose-200";
+                        textoDias = `Vencido há ${Math.abs(item.diasRestantes)}d`;
                     } else if (item.diasRestantes <= 30) {
-                        corDias = "bg-rose-50 text-rose-800 border-rose-200 font-semibold";
-                        textoDias = `Vence em ${item.diasRestantes} dia(s)`;
+                        corDias = "bg-amber-50 text-amber-800 border-amber-200";
                     }
-                    badgeDiasHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] border ${corDias}">${textoDias}</span>`;
+                    badgeDiasHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${corDias}">${textoDias}</span>`;
+                }
+
+                let badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">OK</span>`;
+                if (item.situacao === 'CERTIFICADO PRELIMINAR DE ENSAIO') {
+                    badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">CERTIFICADO PRELIMINAR</span>`;
+                } else if (item.situacao === 'GNRU EMITIDA') {
+                    badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">GNRU EMITIDA</span>`;
                 }
 
                 tr.innerHTML = `
-                    <td class="py-2.5 px-4 font-mono font-bold text-slate-900">${item.placa}</td>
-                    <td class="py-2.5 px-4 font-mono text-[11px] text-slate-500 col-renavam">${item.renavam}</td>
-                    <td class="py-2.5 px-4 font-medium text-slate-800">${formatarData(item.vencimento)}</td>
-                    <td class="py-2.5 px-4">${badgeDiasHtml}</td>
-                    <td class="py-2.5 px-4 col-situacao">
-                        <span class="text-[11px] text-slate-600 font-medium">${item.situacao}</span>
-                    </td>
-                    <td class="py-2.5 px-4 text-right space-x-1.5 no-print">
-                        <button onclick="abrirModalEditar(${item.indexOriginal})" class="text-blue-700 hover:text-blue-900 p-1.5 rounded transition bg-blue-50/80 border border-blue-100" title="Editar"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
-                        <button onclick="excluirRegistro(${item.indexOriginal})" class="text-rose-700 hover:text-rose-900 p-1.5 rounded transition bg-rose-50/80 border border-rose-100" title="Excluir"><i class="fa-solid fa-trash text-xs"></i></button>
+                    <td class="py-3 px-4 font-semibold text-slate-900">${item.placa || ''}</td>
+                    <td class="py-3 px-4 text-slate-600 col-renavam">${item.renavam || ''}</td>
+                    <td class="py-3 px-4 text-slate-600">${formatarData(item.vencimento)}</td>
+                    <td class="py-3 px-4">${badgeDiasHtml}</td>
+                    <td class="py-3 px-4 col-situacao">${badgeSituacaoHtml}</td>
+                    <td class="py-3 px-4 text-right no-print space-x-1">
+                        <button onclick="abrirModalEditar(${item.indexOriginal})" class="p-1 text-slate-400 hover:text-blue-600 transition" title="Editar Veículo">
+                            <i class="fa-solid fa-pen-to-square text-xs"></i>
+                        </button>
+                        <button onclick="excluirRegistro(${item.indexOriginal})" class="p-1 text-slate-400 hover:text-rose-600 transition" title="Excluir Veículo">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -488,6 +489,7 @@
 
         function abrirModalEditar(index) {
             const reg = registros[index];
+            if (!reg) return;
             document.getElementById('modalTitulo').innerText = 'Editar Veículo';
             document.getElementById('regIndex').value = index;
             document.getElementById('regPlaca').value = reg.placa || '';
@@ -505,8 +507,8 @@
         function salvarRegistro(event) {
             event.preventDefault();
             const index = document.getElementById('regIndex').value;
-            const novoObj = {
-                placa: document.getElementById('regPlaca').value.toUpperCase().trim(),
+            const novoDado = {
+                placa: document.getElementById('regPlaca').value.trim().toUpperCase(),
                 renavam: document.getElementById('regRenavam').value.trim(),
                 vencimento: document.getElementById('regVencimento').value,
                 categoria: document.getElementById('regCategoria').value,
@@ -514,86 +516,73 @@
             };
 
             if (index === '') {
-                registros.push(novoObj);
+                registros.push(novoDado);
             } else {
-                registros[parseInt(index)] = novoObj;
+                registros[parseInt(index)] = novoDado;
             }
 
-            salvarLocalStorage();
+            salvarLocalStorage(); // Salva automaticamente as alterações
             fecharModal();
             renderizarTabelas();
         }
 
         function excluirRegistro(index) {
-            if (confirm('Tem certeza que deseja excluir este veículo do registro?')) {
+            if (confirm("Deseja realmente excluir este veículo do sistema?")) {
                 registros.splice(index, 1);
-                salvarLocalStorage();
+                salvarLocalStorage(); // Salva automaticamente a remoção
                 renderizarTabelas();
             }
-        }
-
-        function exportarExcel() {
-            const dadosExportar = registros.map(r => {
-                const dias = calcularDiasRestantes(r.vencimento);
-                return {
-                    "PLACA": r.placa,
-                    "RENAVAM": r.renavam,
-                    "CATEGORIA": r.categoria,
-                    "VENCIMENTO": formatarData(r.vencimento),
-                    "DIAS PARA VENCIMENTO": dias !== null ? dias : '',
-                    "SITUAÇÃO": r.situacao
-                };
-            });
-
-            const worksheet = XLSX.utils.json_to_sheet(dadosExportar);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Tacografos");
-            XLSX.writeFile(workbook, "Relatorio_Tacografos_Frota.xlsx");
         }
 
         function exportarImpressaoOuPDF() {
             window.print();
         }
 
+        function exportarExcel() {
+            const dadosExcel = registros.map(r => ({
+                "Placa": r.placa,
+                "Renavam": r.renavam,
+                "Vencimento": formatarData(r.vencimento),
+                "Situação": r.situacao,
+                "Categoria": r.categoria
+            }));
+            const worksheet = XLSX.utils.json_to_sheet(dadosExcel);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Tacografos");
+            XLSX.writeFile(workbook, "Controle_Tacografos_Frota.xlsx");
+        }
+
         function exportarBackupJSON() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(registros, null, 2));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `backup_gestao_frota_${new Date().toISOString().split('T')[0]}.json`);
+            downloadAnchor.setAttribute("download", "backup_tacografos_frota.json");
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
         }
 
         function importarBackupJSON(event) {
-            const arquivo = event.target.files[0];
-            if (!arquivo) return;
-
+            const file = event.target.files[0];
+            if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const dadosRestaurados = JSON.parse(e.target.result);
-                    if (Array.isArray(dadosRestaurados)) {
-                        registros = dadosRestaurados;
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        registros = imported;
                         salvarLocalStorage();
                         renderizarTabelas();
-                        alert('Backup restaurado com sucesso.');
+                        alert("Backup restaurado com sucesso!");
                     } else {
-                        alert('Formato de arquivo inválido.');
+                        alert("Arquivo de backup inválido.");
                     }
                 } catch (err) {
-                    alert('Erro ao processar o arquivo JSON.');
+                    alert("Erro ao ler o arquivo JSON.");
                 }
-                event.target.value = '';
             };
-            reader.readAsText(arquivo);
+            reader.readAsText(file);
         }
-
-        function gerarRelatorio() {
-            window.print();
-        }
-
-        window.onload = carregarDados;
     </script>
 </body>
 </html>
