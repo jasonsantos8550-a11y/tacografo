@@ -445,6 +445,73 @@
             document.getElementById('modalRegistro').classList.add('hidden');
         }
 
+        function renderizarLinhasTabela(tbodyId, vazioId, itens) {
+            const tbody = document.getElementById(tbodyId);
+            const vazio = document.getElementById(vazioId);
+            tbody.innerHTML = '';
+
+            if (itens.length === 0) {
+                vazio.classList.remove('hidden');
+                return;
+            } else {
+                vazio.classList.add('hidden');
+            }
+
+            itens.forEach(item => {
+                const tr = document.createElement('tr');
+                
+                // NOVA LÓGICA: Verifica se está vencido ou vence em até 3 dias
+                const isAlertaVermelho = item.diasRestantes !== null && item.diasRestantes <= 3;
+                
+                // Aplica fundo vermelho se for alerta, senão aplica o padrão
+                tr.className = isAlertaVermelho 
+                    ? "bg-red-100 hover:bg-red-200 transition border-b border-red-200" 
+                    : "hover:bg-slate-50/80 transition border-b border-slate-100";
+
+                let badgeDiasHtml = '-';
+                if (item.diasRestantes !== null) {
+                    let corDias = "bg-emerald-50 text-emerald-800 border-emerald-200";
+                    let textoDias = `${item.diasRestantes} dia(s)`;
+                    
+                    if (item.diasRestantes < 0) {
+                        corDias = "bg-rose-50 text-rose-800 border-rose-200";
+                        textoDias = `Vencido há ${Math.abs(item.diasRestantes)}d`;
+                    } else if (item.diasRestantes <= 3) {
+                        // Badge mais escura para destacar no fundo vermelho
+                        corDias = "bg-red-200 text-red-900 border-red-300";
+                    } else if (item.diasRestantes <= 30) {
+                        corDias = "bg-amber-50 text-amber-800 border-amber-200";
+                    }
+                    badgeDiasHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${corDias}">${textoDias}</span>`;
+                }
+
+                let badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">OK</span>`;
+                if (item.situacao === 'CERTIFICADO PRELIMINAR DE ENSAIO') {
+                    badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">CERTIFICADO PRELIMINAR</span>`;
+                } else if (item.situacao === 'GRU EMITIDA') {
+                    badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">GRU EMITIDA</span>`;
+                }
+
+                // Ajustamos a cor do texto (text-slate-900 vs text-red-900) para garantir boa leitura no fundo vermelho
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-semibold ${isAlertaVermelho ? 'text-red-900' : 'text-slate-900'}">${item.placa || ''}</td>
+                    <td class="py-3 px-4 ${isAlertaVermelho ? 'text-red-800' : 'text-slate-600'} col-renavam">${item.renavam || ''}</td>
+                    <td class="py-3 px-4 ${isAlertaVermelho ? 'text-red-800' : 'text-slate-600'}">${formatarData(item.vencimento)}</td>
+                    <td class="py-3 px-4">${badgeDiasHtml}</td>
+                    <td class="py-3 px-4 col-situacao">${badgeSituacaoHtml}</td>
+                    <td class="py-3 px-4 text-right no-print space-x-1">
+                        <button onclick="abrirModalEditar(${item.indexOriginal})" class="p-1 ${isAlertaVermelho ? 'text-red-700 hover:text-red-900' : 'text-slate-400 hover:text-blue-600'} transition" title="Editar Veículo">
+                            <i class="fa-solid fa-pen-to-square text-xs"></i>
+                        </button>
+                        <button onclick="excluirRegistro(${item.indexOriginal})" class="p-1 ${isAlertaVermelho ? 'text-red-700 hover:text-red-900' : 'text-slate-400 hover:text-rose-600'} transition" title="Excluir Veículo">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
         async function salvarRegistro(event) {
             event.preventDefault();
             const id = document.getElementById('regId').value;
