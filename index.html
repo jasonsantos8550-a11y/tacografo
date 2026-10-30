@@ -9,6 +9,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- SDK do Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -72,13 +74,6 @@
                 <button onclick="exportarExcel()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3.5 py-2 rounded font-medium transition flex items-center gap-2 border border-slate-700 shadow-xs">
                     <i class="fa-solid fa-file-excel text-emerald-400"></i> Excel
                 </button>
-                <button onclick="exportarBackupJSON()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded font-medium transition flex items-center gap-1.5 border border-slate-700 shadow-xs" title="Baixar Arquivo para Rede">
-                    <i class="fa-solid fa-download text-slate-400"></i> Baixar Base (JSON)
-                </button>
-                <label class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded font-medium transition flex items-center gap-1.5 cursor-pointer border border-slate-700 shadow-xs" title="Carregar arquivo atualizado">
-                    <i class="fa-solid fa-upload text-slate-400"></i> Atualizar Base
-                    <input type="file" accept=".json" class="hidden" onchange="importarBackupJSON(event)">
-                </label>
             </div>
         </div>
     </header>
@@ -217,7 +212,7 @@
                 <button onclick="fecharModal()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-sm"></i></button>
             </div>
             <form id="formRegistro" onsubmit="salvarRegistro(event)" class="p-5 space-y-3.5">
-                <input type="hidden" id="regIndex">
+                <input type="hidden" id="regId">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                         <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Placa *</label>
@@ -258,121 +253,40 @@
     </div>
 
     <footer class="bg-white border-t border-slate-200 text-center py-3 text-[11px] text-slate-500 mt-auto no-print">
-        <span>Sistema Corporativo de Gestão de Frotas &bull; Sincronização via GitHub</span>
+        <span>Sistema Corporativo de Gestão de Frotas &bull; Sincronização em Tempo Real via Supabase</span>
     </footer>
 
     <script>
-        const dadosIniciais = [
-            { placa: "FUF7A62", renavam: "01399755592", vencimento: "2026-09-12", situacao: "CERTIFICADO PRELIMINAR DE ENSAIO", categoria: "Frota Principal" },
-            { placa: "URX0J94", renavam: "01500878860", vencimento: "2026-09-14", situacao: "CERTIFICADO PRELIMINAR DE ENSAIO", categoria: "Frota Principal" },
-            { placa: "UPK5B59", renavam: "01500877686", vencimento: "2026-09-16", situacao: "CERTIFICADO PRELIMINAR DE ENSAIO", categoria: "Frota Principal" },
-            { placa: "FPI5J17", renavam: "01304728886", vencimento: "2026-09-21", situacao: "CERTIFICADO PRELIMINAR DE ENSAIO", categoria: "Frota Principal" },
-            { placa: "QSP6J02", renavam: "01498203725", vencimento: "2026-09-25", situacao: "CERTIFICADO PRELIMINAR DE ENSAIO", categoria: "Frota Principal" },
-            { placa: "SWK3C63", renavam: "01401926883", vencimento: "2026-09-28", situacao: "CERTIFICADO PRELIMINAR DE ENSAIO", categoria: "Frota Principal" },
-            { placa: "UP53855", renavam: "01498201218", vencimento: "2026-09-29", situacao: "CERTIFICADO PRELIMINAR DE ENSAIO", categoria: "Frota Principal" },
-            { placa: "UQK9H97", renavam: "01498203121", vencimento: "2026-10-02", situacao: "CERTIFICADO PRELIMINAR DE ENSAIO", categoria: "Frota Principal" },
-            { placa: "FSY7C13", renavam: "01320065870", vencimento: "2026-10-03", situacao: "CERTIFICADO PRELIMINAR DE ENSAIO", categoria: "Frota Principal" },
-            { placa: "BSX7E03", renavam: "01320065373", vencimento: "2026-10-03", situacao: "CERTIFICADO PRELIMINAR DE ENSAIO", categoria: "Frota Principal" },
-            { placa: "GDV6J73", renavam: "01320065500", vencimento: "2026-10-03", situacao: "CERTIFICADO PRELIMINAR DE ENSAIO", categoria: "Frota Principal" },
-            { placa: "FUR6D41", renavam: "01405004409", vencimento: "2026-10-14", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "FK89891", renavam: "01405060651", vencimento: "2026-10-14", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "SVE3I95", renavam: "01405219030", vencimento: "2026-10-14", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "TKR8G69", renavam: "01407780228", vencimento: "2026-11-01", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "SV14J36", renavam: "01409197635", vencimento: "2026-11-04", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "BSX1893", renavam: "01172971444", vencimento: "2026-11-29", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "EGJ7A75", renavam: "00148517358", vencimento: "2026-12-10", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "TLN7H27", renavam: "40168840871", vencimento: "2027-03-20", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "EBM4F39", renavam: "00118463975", vencimento: "2027-03-24", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "FUS4H08", renavam: "01258998758", vencimento: "2027-04-10", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "EXN7F98", renavam: "01184639466", vencimento: "2027-04-11", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "ECW1G97", renavam: "01259192919", vencimento: "2027-04-16", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "BQU6857", renavam: "01187513722", vencimento: "2027-04-17", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "FWB4A95", renavam: "01259194385", vencimento: "2027-04-17", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "FVA9J72", renavam: "01433129733", vencimento: "2027-04-17", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "TKMOE43", renavam: "01433581067", vencimento: "2027-04-17", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "TLX6J15", renavam: "01430492543", vencimento: "2027-04-17", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "TKM2C57", renavam: "01433425723", vencimento: "2027-04-24", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "TKM1F36", renavam: "01433319486", vencimento: "2027-04-25", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "EXW3A62", renavam: "01433779940", vencimento: "2027-04-29", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "BZAOF49", renavam: "01187514230", vencimento: "2027-04-30", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "FXP4H16", renavam: "01337419513", vencimento: "2027-04-30", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "FZH1E35", renavam: "01260926211", vencimento: "2027-05-06", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "EWD1E37", renavam: "01260849829", vencimento: "2027-05-20", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "TKY3C74", renavam: "01439679182", vencimento: "2027-06-13", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "TKX0H34", renavam: "01439677597", vencimento: "2027-06-13", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "TKZ2H63", renavam: "01444104389", vencimento: "2027-06-27", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "FBP9D01", renavam: "01351522792", vencimento: "2027-06-27", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "DHW6G75", renavam: "01267791010", vencimento: "2027-07-04", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "DPF9B25", renavam: "01268815150", vencimento: "2027-07-11", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "GAJ5G55", renavam: "01274824645", vencimento: "2027-09-25", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "DGY5E31", renavam: "01361002988", vencimento: "2027-10-08", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "TKG2E36", renavam: "01464100419", vencimento: "2027-10-22", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "TKJ0E75", renavam: "01464051442", vencimento: "2027-10-22", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "FXQ8D87", renavam: "01278160652", vencimento: "2027-11-05", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "EXN9H47", renavam: "01290756276", vencimento: "2028-02-20", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "DEU9B40", renavam: "01222926064", vencimento: "2028-02-26", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "ESW5D17", renavam: "01224832555", vencimento: "2028-03-04", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "DBL5A59", renavam: "01224832032", vencimento: "2028-03-06", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "FNV5G15", renavam: "01294492362", vencimento: "2028-04-10", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "SVY8E65", renavam: "01390785812", vencimento: "2028-06-09", situacao: "OK", categoria: "Frota Principal" },
-            { placa: "DBM7H87", renavam: "00861445430", vencimento: "2026-09-27", situacao: "OK", categoria: "Veículos de Terceiros" },
-            { placa: "CNR5239", renavam: "00357761626", vencimento: "2027-02-03", situacao: "OK", categoria: "Veículos de Terceiros" },
-            { placa: "BYB1F59", renavam: "00414746198", vencimento: "2027-06-25", situacao: "OK", categoria: "Veículos de Terceiros" },
-            { placa: "INP1976", renavam: "0907825630", vencimento: "2027-07-10", situacao: "OK", categoria: "Veículos de Terceiros" },
-            { placa: "BWS8359", renavam: "00377031283", vencimento: "2027-10-01", situacao: "OK", categoria: "Veículos de Terceiros" },
-            { placa: "BUS4D47", renavam: "00714561312", vencimento: "2027-10-15", situacao: "OK", categoria: "Veículos de Terceiros" },
-            { placa: "DBB5622", renavam: "00899473679", vencimento: "2028-01-07", situacao: "OK", categoria: "Veículos de Terceiros" },
-            { placa: "BUP3E51", renavam: "00700650180", vencimento: "2028-01-17", situacao: "OK", categoria: "Veículos de Terceiros" },
-            { placa: "EDC4615", renavam: "00126402973", vencimento: "2028-03-02", situacao: "OK", categoria: "Veículos de Terceiros" },
-            { placa: "CPJ1G11", renavam: "00082029529", vencimento: "2028-03-17", situacao: "OK", categoria: "Veículos de Terceiros" }
-        ];
+        // =========================================================================
+        // CONFIGURAÇÃO DO SUPABASE (Insira suas chaves do painel do Supabase)
+        // =========================================================================
+        const SUPABASE_URL = 'https://kwrnstjjbrznpufoejmr.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3cm5zdGpqYnJ6bnB1Zm9lam1yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyOTQ3MDAsImV4cCI6MjEwODg3MDcwMH0.FXHi54k7cx5dPyQYBCHg6pz2uKp_o6mPuTxpBCY4Ero';
+        
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let registros = [];
 
-        function iniciarSistema() {
-            carregarDadosRede();
+        async function iniciarSistema() {
+            await carregarDadosSupabase();
         }
 
-        function carregarDados() {
-            const salvo = localStorage.getItem('tacografos_dados_frota_v2');
-            if (salvo) {
-                try {
-                    registros = JSON.parse(salvo);
-                } catch (e) {
-                    registros = dadosIniciais;
-                }
-            } else {
-                registros = dadosIniciais;
+        async function carregarDadosSupabase() {
+            const { data, error } = await _supabase
+                .from('frota')
+                .select('*')
+                .order('vencimento', { ascending: true });
+
+            if (error) {
+                console.error("Erro ao carregar dados do Supabase:", error.message);
+                alert("Erro ao conectar com o banco de dados.");
+                return;
             }
-            renderizarTabelas();
-        }
 
-        function carregarDadosRede() {
-            // =========================================================================
-            // COLE ABAIXO O SEU LINK RAW DO GITHUB (Ex: https://raw.githubusercontent.com/usuario/repo/main/dados_frota.json)
-            // =========================================================================
-            const urlGitHubRaw = 'https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPO/main/dados_frota.json';
-
-            fetch(urlGitHubRaw + '?' + new Date().getTime()) // Evita cache do navegador
-                .then(response => {
-                    if (response.ok) return response.json();
-                    throw new Error('Não foi possível carregar do GitHub');
-                })
-                .then(data => {
-                    if (Array.isArray(data)) {
-                        registros = data;
-                        localStorage.setItem('tacografos_dados_frota_v2', JSON.stringify(registros));
-                        renderizarTabelas();
-                    }
-                })
-                .catch(() => {
-                    // Se estiver offline ou falhar, recorre ao cache local
-                    carregarDados();
-                });
-        }
-
-        function salvarLocalStorage() {
-            localStorage.setItem('tacografos_dados_frota_v2', JSON.stringify(registros));
+            if (data) {
+                registros = data;
+                renderizarTabelas();
+            }
         }
 
         function formatarData(dataStr) {
@@ -505,7 +419,7 @@
 
         function abrirModalNovo() {
             document.getElementById('modalTitulo').innerText = 'Novo Veículo';
-            document.getElementById('regIndex').value = '';
+            document.getElementById('regId').value = '';
             document.getElementById('regPlaca').value = '';
             document.getElementById('regRenavam').value = '';
             document.getElementById('regVencimento').value = '';
@@ -518,7 +432,7 @@
             const reg = registros[index];
             if (!reg) return;
             document.getElementById('modalTitulo').innerText = 'Editar Veículo';
-            document.getElementById('regIndex').value = index;
+            document.getElementById('regId').value = reg.id; // ID único do banco
             document.getElementById('regPlaca').value = reg.placa || '';
             document.getElementById('regRenavam').value = reg.renavam || '';
             document.getElementById('regVencimento').value = reg.vencimento || '';
@@ -531,9 +445,9 @@
             document.getElementById('modalRegistro').classList.add('hidden');
         }
 
-        function salvarRegistro(event) {
+        async function salvarRegistro(event) {
             event.preventDefault();
-            const index = document.getElementById('regIndex').value;
+            const id = document.getElementById('regId').value;
             const novoDado = {
                 placa: document.getElementById('regPlaca').value.trim().toUpperCase(),
                 renavam: document.getElementById('regRenavam').value.trim(),
@@ -542,27 +456,41 @@
                 situacao: document.getElementById('regSituacao').value
             };
 
-            if (index === '') {
-                registros.push(novoDado);
+            if (id === '') {
+                // Inserir no Supabase
+                const { error } = await _supabase.from('frota').insert([novoDado]);
+                if (error) {
+                    alert("Erro ao salvar veículo: " + error.message);
+                    return;
+                }
             } else {
-                registros[parseInt(index)] = novoDado;
+                // Atualizar no Supabase pelo ID
+                const { error } = await _supabase.from('frota').update(novoDado).eq('id', id);
+                if (error) {
+                    alert("Erro ao atualizar veículo: " + error.message);
+                    return;
+                }
             }
 
-            salvarLocalStorage();
             fecharModal();
-            renderizarTabelas();
-            
-            exportarBackupJSON();
-            alert("Veículo salvo! O arquivo JSON atualizado foi baixado para você atualizar no GitHub.");
+            await carregarDadosSupabase();
+            alert("Veículo salvo e sincronizado com sucesso!");
         }
 
-        function excluirRegistro(index) {
-            if (confirm("Deseja realmente excluir este veículo do sistema?")) {
-                registros.splice(index, 1);
-                salvarLocalStorage();
-                renderizarTabelas();
-                exportarBackupJSON();
-                alert("Veículo excluído! O arquivo JSON atualizado foi baixado para substituição no GitHub.");
+        async function excluirRegistro(index) {
+            const reg = registros[index];
+            if (!reg || !reg.id) return;
+
+            if (confirm(`Deseja realmente excluir o veículo de placa ${reg.placa}?`)) {
+                const { error } = await _supabase.from('frota').delete().eq('id', reg.id);
+                
+                if (error) {
+                    alert("Erro ao excluir veículo: " + error.message);
+                    return;
+                }
+
+                await carregarDadosSupabase();
+                alert("Veículo excluído com sucesso!");
             }
         }
 
@@ -571,50 +499,19 @@
         }
 
         function exportarExcel() {
-            const dadosExcel = registros.map(r => ({
-                "Placa": r.placa,
-                "Renavam": r.renavam,
-                "Vencimento": formatarData(r.vencimento),
-                "Situação": r.situacao,
-                "Categoria": r.categoria
-            }));
-            const worksheet = XLSX.utils.json_to_sheet(dadosExcel);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Tacografos");
-            XLSX.writeFile(workbook, "Controle_Tacografos_Frota.xlsx");
-        }
-
-        function exportarBackupJSON() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(registros, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", "dados_frota.json");
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
-
-        function importarBackupJSON(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if (Array.isArray(imported)) {
-                        registros = imported;
-                        salvarLocalStorage();
-                        renderizarTabelas();
-                        alert("Base de dados atualizada com sucesso!");
-                    } else {
-                        alert("Arquivo de dados inválido.");
-                    }
-                } catch (err) {
-                    alert("Erro ao ler o arquivo JSON.");
-                }
-            };
-            reader.readAsText(file);
-        }
+        const dadosExcel = registros.map(r => ({
+        "placa": r.placa,
+        "renavam": r.renavam,
+        "vencimento": r.vencimento, // Mantém em AAAA-MM-DD para exportação e importação no Supabase
+        "situacao": r.situacao,
+        "categoria": r.categoria
+    }));
+    
+    const worksheet = XLSX.utils.json_to_sheet(dadosExcel);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Tacografos");
+    XLSX.writeFile(workbook, "Controle_Tacografos_Frota.xlsx");
+}
     </script>
 </body>
 </html>
