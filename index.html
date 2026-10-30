@@ -106,8 +106,8 @@
             </div>
             <div class="bg-white p-4 rounded-md shadow-xs border border-slate-200 flex items-center justify-between">
                 <div>
-                    <p class="text-[11px] font-semibold text-purple-700 uppercase tracking-wider">GNRU Emitida</p>
-                    <h3 id="statGnru" class="text-xl font-bold text-purple-700 mt-1">0</h3>
+                    <p class="text-[11px] font-semibold text-purple-700 uppercase tracking-wider">GRU Emitida</p>
+                    <h3 id="statGru" class="text-xl font-bold text-purple-700 mt-1">0</h3>
                 </div>
                 <div class="bg-purple-50 text-purple-600 p-2.5 rounded text-base"><i class="fa-solid fa-file-invoice-dollar"></i></div>
             </div>
@@ -134,7 +134,7 @@
                     <option value="todos">Filtrar Situação (Todas)</option>
                     <option value="OK">Situação: OK</option>
                     <option value="CERTIFICADO PRELIMINAR DE ENSAIO">Certificado Preliminar</option>
-                    <option value="GNRU EMITIDA">GNRU Emitida</option>
+                    <option value="GRU EMITIDA">GRU Emitida</option>
                 </select>
 
                 <select id="ordenacao" onchange="renderizarTabelas()" class="border border-slate-300 rounded px-3 py-2 text-xs bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-600">
@@ -241,7 +241,7 @@
                     <select id="regSituacao" class="w-full border border-slate-300 rounded px-3 py-1.5 text-xs bg-white focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:outline-none">
                         <option value="OK">OK</option>
                         <option value="CERTIFICADO PRELIMINAR DE ENSAIO">CERTIFICADO PRELIMINAR DE ENSAIO</option>
-                        <option value="GNRU EMITIDA">GNRU EMITIDA</option>
+                        <option value="GRU EMITIDA">GRU EMITIDA</option>
                     </select>
                 </div>
                 <div class="pt-3 flex justify-end space-x-2 border-t border-slate-100">
@@ -315,13 +315,13 @@
             let total = registros.length;
             let ok = 0;
             let preliminar = 0;
-            let gnru = 0;
+            let gru = 0;
             let terceirosCount = 0;
 
             const processados = registros.map((reg, index) => {
                 if (reg.situacao === 'OK') ok++;
                 if (reg.situacao && reg.situacao.includes('PRELIMINAR')) preliminar++;
-                if (reg.situacao && reg.situacao.includes('GNRU')) gnru++;
+                if (reg.situacao && reg.situacao.includes('GRU')) gru++;
                 if (reg.categoria === 'Veículos de Terceiros') terceirosCount++;
 
                 const dias = calcularDiasRestantes(reg.vencimento);
@@ -331,7 +331,7 @@
             document.getElementById('statTotal').innerText = total;
             document.getElementById('statOk').innerText = ok;
             document.getElementById('statPreliminar').innerText = preliminar;
-            document.getElementById('statGnru').innerText = gnru;
+            document.getElementById('statGru').innerText = gru;
             document.getElementById('statTerceiros').innerText = terceirosCount;
 
             let filtrados = processados.filter(item => {
@@ -394,8 +394,8 @@
                 let badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">OK</span>`;
                 if (item.situacao === 'CERTIFICADO PRELIMINAR DE ENSAIO') {
                     badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">CERTIFICADO PRELIMINAR</span>`;
-                } else if (item.situacao === 'GNRU EMITIDA') {
-                    badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">GNRU EMITIDA</span>`;
+                } else if (item.situacao === 'GRU EMITIDA') {
+                    badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">GRU EMITIDA</span>`;
                 }
 
                 tr.innerHTML = `
