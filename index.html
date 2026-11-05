@@ -147,6 +147,7 @@
                     <option value="OK">Situação: OK</option>
                     <option value="CERTIFICADO PRELIMINAR DE ENSAIO">Certificado Preliminar</option>
                     <option value="GRU EMITIDA">GRU Emitida</option>
+                    <option value="VENCIDO">Vencido</option>
                 </select>
 
                 <select id="ordenacao" onchange="renderizarTabelas()" class="border border-slate-300 rounded px-3 py-2 text-xs bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-600">
@@ -255,6 +256,7 @@
                         <option value="OK">OK</option>
                         <option value="CERTIFICADO PRELIMINAR DE ENSAIO">CERTIFICADO PRELIMINAR DE ENSAIO</option>
                         <option value="GRU EMITIDA">GRU EMITIDA</option>
+                        <option value="VENCIDO">VENCIDO</option>
                     </select>
                 </div>
                 <div class="pt-3 flex justify-end space-x-2 border-t border-slate-100">
@@ -388,95 +390,10 @@
 
             itens.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50/80 transition border-b border-slate-100";
-
-                let badgeDiasHtml = '-';
-                if (item.diasRestantes !== null) {
-                    let corDias = "bg-emerald-50 text-emerald-800 border-emerald-200";
-                    let textoDias = `${item.diasRestantes} dia(s)`;
-                    
-                    if (item.diasRestantes < 0) {
-                        corDias = "bg-rose-50 text-rose-800 border-rose-200";
-                        textoDias = `Vencido há ${Math.abs(item.diasRestantes)}d`;
-                    } else if (item.diasRestantes <= 30) {
-                        corDias = "bg-amber-50 text-amber-800 border-amber-200";
-                    }
-                    badgeDiasHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${corDias}">${textoDias}</span>`;
-                }
-
-                let badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">OK</span>`;
-                if (item.situacao === 'CERTIFICADO PRELIMINAR DE ENSAIO') {
-                    badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">CERTIFICADO PRELIMINAR</span>`;
-                } else if (item.situacao === 'GRU EMITIDA') {
-                    badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">GRU EMITIDA</span>`;
-                }
-
-                tr.innerHTML = `
-                    <td class="py-3 px-4 font-semibold text-slate-900">${item.placa || ''}</td>
-                    <td class="py-3 px-4 text-slate-600 col-renavam">${item.renavam || ''}</td>
-                    <td class="py-3 px-4 text-slate-600">${formatarData(item.vencimento)}</td>
-                    <td class="py-3 px-4">${badgeDiasHtml}</td>
-                    <td class="py-3 px-4 col-situacao">${badgeSituacaoHtml}</td>
-                    <td class="py-3 px-4 text-right no-print space-x-1">
-                        <button onclick="abrirModalEditar(${item.indexOriginal})" class="p-1 text-slate-400 hover:text-blue-600 transition" title="Editar Veículo">
-                            <i class="fa-solid fa-pen-to-square text-xs"></i>
-                        </button>
-                        <button onclick="excluirRegistro(${item.indexOriginal})" class="p-1 text-slate-400 hover:text-rose-600 transition" title="Excluir Veículo">
-                            <i class="fa-solid fa-trash-can text-xs"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function abrirModalNovo() {
-            document.getElementById('modalTitulo').innerText = 'Novo Veículo';
-            document.getElementById('regId').value = '';
-            document.getElementById('regPlaca').value = '';
-            document.getElementById('regRenavam').value = '';
-            document.getElementById('regVencimento').value = '';
-            document.getElementById('regCategoria').value = 'Frota Principal';
-            document.getElementById('regSituacao').value = 'OK';
-            document.getElementById('modalRegistro').classList.remove('hidden');
-        }
-
-        function abrirModalEditar(index) {
-            const reg = registros[index];
-            if (!reg) return;
-            document.getElementById('modalTitulo').innerText = 'Editar Veículo';
-            document.getElementById('regId').value = reg.id; // ID único do banco
-            document.getElementById('regPlaca').value = reg.placa || '';
-            document.getElementById('regRenavam').value = reg.renavam || '';
-            document.getElementById('regVencimento').value = reg.vencimento || '';
-            document.getElementById('regCategoria').value = reg.categoria || 'Frota Principal';
-            document.getElementById('regSituacao').value = reg.situacao || 'OK';
-            document.getElementById('modalRegistro').classList.remove('hidden');
-        }
-
-        function fecharModal() {
-            document.getElementById('modalRegistro').classList.add('hidden');
-        }
-
-        function renderizarLinhasTabela(tbodyId, vazioId, itens) {
-            const tbody = document.getElementById(tbodyId);
-            const vazio = document.getElementById(vazioId);
-            tbody.innerHTML = '';
-
-            if (itens.length === 0) {
-                vazio.classList.remove('hidden');
-                return;
-            } else {
-                vazio.classList.add('hidden');
-            }
-
-            itens.forEach(item => {
-                const tr = document.createElement('tr');
                 
-                // NOVA LÓGICA: Verifica se está vencido ou vence em até 3 dias
-                const isAlertaVermelho = item.diasRestantes !== null && item.diasRestantes <= 3;
+                // ALERTA DE VENCIMENTO: Altera para 7 dias (uma semana) ou já vencido (< 0)
+                const isAlertaVermelho = item.diasRestantes !== null && item.diasRestantes <= 7;
                 
-                // Aplica fundo vermelho se for alerta, senão aplica o padrão
                 tr.className = isAlertaVermelho 
                     ? "bg-red-100 hover:bg-red-200 transition border-b border-red-200" 
                     : "hover:bg-slate-50/80 transition border-b border-slate-100";
@@ -487,25 +404,27 @@
                     let textoDias = `${item.diasRestantes} dia(s)`;
                     
                     if (item.diasRestantes < 0) {
-                        corDias = "bg-rose-50 text-rose-800 border-rose-200";
+                        corDias = "bg-rose-100 text-rose-900 border-rose-300 font-bold";
                         textoDias = `Vencido há ${Math.abs(item.diasRestantes)}d`;
-                    } else if (item.diasRestantes <= 3) {
-                        // Badge mais escura para destacar no fundo vermelho
-                        corDias = "bg-red-200 text-red-900 border-red-300";
+                    } else if (item.diasRestantes <= 7) {
+                        // Badge destacada para o prazo de 7 dias ou menos
+                        corDias = "bg-red-200 text-red-900 border-red-300 font-semibold";
                     } else if (item.diasRestantes <= 30) {
                         corDias = "bg-amber-50 text-amber-800 border-amber-200";
                     }
                     badgeDiasHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${corDias}">${textoDias}</span>`;
                 }
 
+                // BADGE DA SITUAÇÃO (Incluindo a opção VENCIDO)
                 let badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">OK</span>`;
                 if (item.situacao === 'CERTIFICADO PRELIMINAR DE ENSAIO') {
                     badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">CERTIFICADO PRELIMINAR</span>`;
                 } else if (item.situacao === 'GRU EMITIDA') {
                     badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">GRU EMITIDA</span>`;
+                } else if (item.situacao === 'VENCIDO') {
+                    badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-100 text-rose-800 border border-rose-300 uppercase">VENCIDO</span>`;
                 }
 
-                // Ajustamos a cor do texto (text-slate-900 vs text-red-900) para garantir boa leitura no fundo vermelho
                 tr.innerHTML = `
                     <td class="py-3 px-4 font-semibold ${isAlertaVermelho ? 'text-red-900' : 'text-slate-900'}">${item.placa || ''}</td>
                     <td class="py-3 px-4 ${isAlertaVermelho ? 'text-red-800' : 'text-slate-600'} col-renavam">${item.renavam || ''}</td>
