@@ -49,23 +49,23 @@
 </head>
 <body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col" onload="iniciarSistema(); iniciarCarrossel();">
 
-    <!-- Header Corporativo Institucional -->
+    <!-- Header Corporativo com Fundo Preenchido (Carrossel) -->
     <header class="relative shadow-md border-b border-slate-800 no-print overflow-hidden bg-slate-950">
         
-        <!-- Imagens do Carrossel de Fundo (object-cover preenche 100% do espaço) -->
+        <!-- Imagens do Carrossel de Fundo -->
         <div id="header-carousel" class="absolute inset-0 z-0">
             <img src="imgs/bg1.jpg" class="carousel-img absolute inset-0 w-full h-full object-cover opacity-100 transition-opacity duration-1000 ease-in-out">
             <img src="imgs/bg2.jpg" class="carousel-img absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000 ease-in-out">
             <img src="imgs/bg3.jpg" class="carousel-img absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000 ease-in-out">
         </div>
 
-        <!-- Película translúcida escura para garantir o contraste perfeito dos textos -->
+        <!-- Película translúcida escura -->
         <div class="absolute inset-0 bg-slate-950/65 backdrop-blur-[1px] z-10"></div>
 
-        <!-- Conteúdo do Header com ótimo espaçamento (py-28 a py-32 para ficar bem imponente) -->
+        <!-- Conteúdo do Header (Logo e Título) -->
         <div class="relative z-20 max-w-7xl mx-auto w-full px-6 py-28 md:py-32 flex flex-col md:flex-row justify-start items-center gap-4">
             <div class="flex items-center space-x-4">
-                <img src="imgs/logo.jpg" alt="Logo Trans Nogueira" class="h-16 w-auto object-contain shadow-sm">
+                <img src="imgs/logo.png" alt="Logo Trans Nogueira" class="h-16 w-auto object-contain shadow-sm">
                 <div>
                     <h1 class="text-3xl font-bold tracking-wide text-white drop-shadow-md">Painel de Gestão de Frotas</h1>
                     <p class="text-base text-slate-200 drop-shadow-md mt-1">Controle Técnico de Tacógrafos e Conformidade Inmetro</p>
@@ -116,7 +116,7 @@
             </div>
         </div>
 
-        <!-- 1º: BARRA DE BOTÕES (Agora logo acima dos filtros) -->
+        <!-- BARRA DE BOTÕES DE AÇÃO (Fixa acima dos filtros) -->
         <div class="flex flex-wrap items-center justify-end gap-2.5 no-print">
             <a href="https://cronotacografo.rbmlq.gov.br/certificados/consultar" target="_blank" rel="noopener noreferrer" class="bg-white hover:bg-slate-50 text-slate-700 text-xs px-3.5 py-2 rounded font-medium transition flex items-center gap-2 border border-slate-300 shadow-xs">
                 <i class="fa-solid fa-external-link-alt text-blue-600"></i> Consulta Inmetro
@@ -132,7 +132,7 @@
             </button>
         </div>
 
-        <!-- 2º: FILTROS E BUSCA CORPORATIVA -->
+        <!-- Filtros e Busca Corporativa -->
         <div class="bg-white p-4 rounded-md shadow-xs border border-slate-200 flex flex-col lg:flex-row justify-between items-center gap-4 no-print">
             <div class="relative w-full lg:w-96">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
@@ -159,7 +159,6 @@
 
         <!-- SEÇÃO 1: Frota Principal -->
         <div class="bg-white rounded-md shadow-xs border border-slate-200 overflow-hidden">
-            <!-- ... conteúdo da tabela ... -->
             <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex justify-between items-center">
                 <h3 class="font-semibold text-slate-800 flex items-center gap-2 text-xs uppercase tracking-wider">
                     <i class="fa-solid fa-truck-fast text-slate-600"></i> Frota Principal
@@ -273,7 +272,7 @@
 
     <script>
         // =========================================================================
-        // CONFIGURAÇÃO DO SUPABASE (Insira suas chaves do painel do Supabase)
+        // CONFIGURAÇÃO DO SUPABASE
         // =========================================================================
         const SUPABASE_URL = 'https://kwrnstjjbrznpufoejmr.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3cm5zdGpqYnJ6bnB1Zm9lam1yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyOTQ3MDAsImV4cCI6MjEwODg3MDcwMH0.FXHi54k7cx5dPyQYBCHg6pz2uKp_o6mPuTxpBCY4Ero';
@@ -281,9 +280,28 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let registros = [];
+        let slideIndex = 0;
 
         async function iniciarSistema() {
             await carregarDadosSupabase();
+        }
+
+        function iniciarCarrossel() {
+            const slides = document.querySelectorAll('.carousel-img');
+            if (slides.length === 0) return;
+            
+            slides.forEach(slide => {
+                slide.classList.remove('opacity-100');
+                slide.classList.add('opacity-0');
+            });
+            
+            slideIndex++;
+            if (slideIndex > slides.length) { slideIndex = 1 }
+            
+            slides[slideIndex - 1].classList.remove('opacity-0');
+            slides[slideIndex - 1].classList.add('opacity-100');
+            
+            setTimeout(iniciarCarrossel, 5000);
         }
 
         async function carregarDadosSupabase() {
@@ -391,7 +409,7 @@
             itens.forEach(item => {
                 const tr = document.createElement('tr');
                 
-                // ALERTA DE VENCIMENTO: Altera para 7 dias (uma semana) ou já vencido (< 0)
+                // ALERTA DE VENCIMENTO: 7 dias (uma semana) ou já vencido
                 const isAlertaVermelho = item.diasRestantes !== null && item.diasRestantes <= 7;
                 
                 tr.className = isAlertaVermelho 
@@ -407,7 +425,6 @@
                         corDias = "bg-rose-100 text-rose-900 border-rose-300 font-bold";
                         textoDias = `Vencido há ${Math.abs(item.diasRestantes)}d`;
                     } else if (item.diasRestantes <= 7) {
-                        // Badge destacada para o prazo de 7 dias ou menos
                         corDias = "bg-red-200 text-red-900 border-red-300 font-semibold";
                     } else if (item.diasRestantes <= 30) {
                         corDias = "bg-amber-50 text-amber-800 border-amber-200";
@@ -415,7 +432,6 @@
                     badgeDiasHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${corDias}">${textoDias}</span>`;
                 }
 
-                // BADGE DA SITUAÇÃO (Incluindo a opção VENCIDO)
                 let badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">OK</span>`;
                 if (item.situacao === 'CERTIFICADO PRELIMINAR DE ENSAIO') {
                     badgeSituacaoHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">CERTIFICADO PRELIMINAR</span>`;
@@ -444,6 +460,34 @@
             });
         }
 
+        function abrirModalNovo() {
+            document.getElementById('modalTitulo').innerText = 'Novo Veículo';
+            document.getElementById('regId').value = '';
+            document.getElementById('regPlaca').value = '';
+            document.getElementById('regRenavam').value = '';
+            document.getElementById('regVencimento').value = '';
+            document.getElementById('regCategoria').value = 'Frota Principal';
+            document.getElementById('regSituacao').value = 'OK';
+            document.getElementById('modalRegistro').classList.remove('hidden');
+        }
+
+        function abrirModalEditar(index) {
+            const reg = registros[index];
+            if (!reg) return;
+            document.getElementById('modalTitulo').innerText = 'Editar Veículo';
+            document.getElementById('regId').value = reg.id;
+            document.getElementById('regPlaca').value = reg.placa || '';
+            document.getElementById('regRenavam').value = reg.renavam || '';
+            document.getElementById('regVencimento').value = reg.vencimento || '';
+            document.getElementById('regCategoria').value = reg.categoria || 'Frota Principal';
+            document.getElementById('regSituacao').value = reg.situacao || 'OK';
+            document.getElementById('modalRegistro').classList.remove('hidden');
+        }
+
+        function fecharModal() {
+            document.getElementById('modalRegistro').classList.add('hidden');
+        }
+
         async function salvarRegistro(event) {
             event.preventDefault();
             const id = document.getElementById('regId').value;
@@ -456,14 +500,12 @@
             };
 
             if (id === '') {
-                // Inserir no Supabase
                 const { error } = await _supabase.from('frota').insert([novoDado]);
                 if (error) {
                     alert("Erro ao salvar veículo: " + error.message);
                     return;
                 }
             } else {
-                // Atualizar no Supabase pelo ID
                 const { error } = await _supabase.from('frota').update(novoDado).eq('id', id);
                 if (error) {
                     alert("Erro ao atualizar veículo: " + error.message);
@@ -498,39 +540,19 @@
         }
 
         function exportarExcel() {
-        const dadosExcel = registros.map(r => ({
-        "placa": r.placa,
-        "renavam": r.renavam,
-        "vencimento": r.vencimento, // Mantém em AAAA-MM-DD para exportação e importação no Supabase
-        "situacao": r.situacao,
-        "categoria": r.categoria
-    }));
-    
-    const worksheet = XLSX.utils.json_to_sheet(dadosExcel);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Tacografos");
-    XLSX.writeFile(workbook, "Controle_Tacografos_Frota.xlsx");
-}
-
-    let slideIndex = 0;
-        function iniciarCarrossel() {
-            const slides = document.querySelectorAll('.carousel-img');
-            if (slides.length === 0) return;
+            const dadosExcel = registros.map(r => ({
+                "placa": r.placa,
+                "renavam": r.renavam,
+                "vencimento": r.vencimento,
+                "situacao": r.situacao,
+                "categoria": r.categoria
+            }));
             
-            slides.forEach(slide => {
-                slide.classList.remove('opacity-100');
-                slide.classList.add('opacity-0');
-            });
-            
-            slideIndex++;
-            if (slideIndex > slides.length) { slideIndex = 1 }
-            
-            slides[slideIndex - 1].classList.remove('opacity-0');
-            slides[slideIndex - 1].classList.add('opacity-100');
-            
-            setTimeout(iniciarCarrossel, 5000); // Troca a imagem a cada 5 segundos
+            const worksheet = XLSX.utils.json_to_sheet(dadosExcel);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Tacografos");
+            XLSX.writeFile(workbook, "Controle_Tacografos_Frota.xlsx");
         }
-
     </script>
 </body>
 </html>
