@@ -352,13 +352,20 @@
             let terceirosCount = 0;
 
             const processados = registros.map((reg, index) => {
-                if (reg.situacao === 'OK') ok++;
-                if (reg.situacao && reg.situacao.includes('PRELIMINAR')) preliminar++;
-                if (reg.situacao && reg.situacao.includes('GRU')) gru++;
+                const dias = calcularDiasRestantes(reg.vencimento);
+                
+                // MUDANÇA AUTOMÁTICA DA SITUAÇÃO PARA "VENCIDO" SE O PRAZO JÁ EXPIROU
+                let situacaoEfetiva = reg.situacao;
+                if (dias !== null && dias < 0) {
+                    situacaoEfetiva = 'VENCIDO';
+                }
+
+                if (situacaoEfetiva === 'OK') ok++;
+                if (situacaoEfetiva && situacaoEfetiva.includes('PRELIMINAR')) preliminar++;
+                if (situacaoEfetiva && situacaoEfetiva.includes('GRU')) gru++;
                 if (reg.categoria === 'Veículos de Terceiros') terceirosCount++;
 
-                const dias = calcularDiasRestantes(reg.vencimento);
-                return { ...reg, indexOriginal: index, diasRestantes: dias };
+                return { ...reg, situacao: situacaoEfetiva, indexOriginal: index, diasRestantes: dias };
             });
 
             document.getElementById('statTotal').innerText = total;
@@ -409,7 +416,7 @@
             itens.forEach(item => {
                 const tr = document.createElement('tr');
                 
-                // ALERTA DE VENCIMENTO: 7 dias (uma semana) ou já vencido
+                // ALERTA DE VENCIMENTO: 7 dias (uma semana) ou já vencido (< 0)
                 const isAlertaVermelho = item.diasRestantes !== null && item.diasRestantes <= 7;
                 
                 tr.className = isAlertaVermelho 
